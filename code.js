@@ -85,10 +85,34 @@ async function firstDivs() {
                 }
               }
             }
-            newButton.id = "playercard" + String(i);
-            newButton.value = "playercard" + String(i);
+            newButton.id = "p" + String(playerCards[i]);
             newButton.classList.add("card");
             newButton.classList.add("player");
+
+            newButton.addEventListener("click", function() {
+                console.log("Button clicked!");
+                const buttonId = event.target.id;
+                const clickedButton = document.getElementById(String(buttonId))
+                clickedButton.remove();
+                current = buttonId.slice(1)
+
+                for (let i = 0; i < playerCards.length; i++) {
+                    let str = "p" + playerCards[i];
+                    let searchCard = document.getElementById(str);
+                    console.log("Searching non usable cards: ", searchCard);
+                  
+                    if (searchCard && searchCard.classList.contains("usable")) {
+                      searchCard.classList.remove("usable");
+                      searchCard.disabled = true;
+                    }
+                  }
+                  
+                updateCurrent();
+                playerCards = playerCards.filter(item => item !== current);
+    
+                botTurn();
+            });
+              
             var colorCode = playerCards[i].charAt(playerCards[i].length - 1);
     
             switch(colorCode){
@@ -114,8 +138,7 @@ async function firstDivs() {
         }
         for (let i = 0; i < 7; i++) {
             var newDiv = document.createElement("div");
-            newDiv.id = "botcard" + String(i);
-            newDiv.value = "botcard" + String(i);
+            newDiv.id = String(botCards[i]);
             newDiv.classList.add("card");
             newDiv.classList.add("bot");
             botDivs.appendChild(newDiv);
@@ -128,7 +151,8 @@ async function firstDivs() {
 
 
 // GAME STARTED
-function updateCurrent() {
+async function updateCurrent() {
+
     if (round == 1) {
         current = deck[left];
         currentColor = current.charAt(current.length - 1);
@@ -140,7 +164,7 @@ function updateCurrent() {
         } else {
             for (let i = 0; i < left; i++) {
                 current = deck[left - i];
-             currentColor = current.charAt(current.length - 1);
+                currentColor = current.charAt(current.length - 1);
                 specialCheck = current.charAt(0)
 
                 if  (currentColor != "4" && specialCheck != "+" && specialCheck != "b" ) {
@@ -149,12 +173,12 @@ function updateCurrent() {
                     break;
                 }
             }
-            
         }
     }
     
     const topCard = document.getElementById('top');
     currentColor = current.charAt(current.length - 1);
+    currentNumber = current.charAt(0);
 
     if (current.charAt(0) == "+"){
         topCard.innerText = current.charAt(0) + current.charAt(1);
@@ -176,6 +200,22 @@ function updateCurrent() {
       }
     }
     
+    if (topCard.classList.contains("red")){
+        topCard.classList.remove("red");
+    }
+    if (topCard.classList.contains("yellow")){
+        topCard.classList.remove("yellow");
+    }
+    if (topCard.classList.contains("green")){
+        topCard.classList.remove("green");
+    }
+    if (topCard.classList.contains("blue")){
+        topCard.classList.remove("blue");
+    }
+    if (topCard.classList.contains("black")){
+        topCard.classList.remove("black");
+    }
+
     switch (currentColor){
         case "0":
             topCard.classList.add("red");
@@ -193,41 +233,64 @@ function updateCurrent() {
             topCard.classList.add("black");
             break;
     }
+    await wait(4000)
 }
 
-function playerTurn() {
-  for (let i = 0; i <= playerCards.length; i++) {
-    const searchCard = document.getElementById('playercard', String(i));
-    if (playerCards[i].charAt(0) == currentNumber || playerCards[i].charAt(0) == currentColor){
-        searchCard.classList.add("usable")
-        searchCard.disabled = false;
+async function playerTurn() {
+    await wait(5600);
+
+    for (let i = 0; i < playerCards.length; i++) {
+        let str = "p" + playerCards[i];
+        var searchCard = document.getElementById(String(str));
+        console.log("Searching usable cards: ", searchCard);
+        if (playerCards[i].charAt(playerCards[i].length - 1) == "4" ||
+            playerCards[i].charAt(1) == currentNumber || playerCards[i].charAt(playerCards[i].length - 1) == currentColor){
+            searchCard.classList.add("usable");
+            searchCard.disabled = false;
+        }
     }
-  }
 }
 
-function botTurn() {
-  var currentColor = current.charAt(current.length - 1);
-  var currentNumber = current.charAt(0);
-  
-  for (let i = 0; i < botCards.length; i++) {
-    var search = botCards[i].charAt(current.length - 1);
-    if (search == currentColor) {
-      current = botCards[i]
-      // REMOVE FROM THE BOTCARDS ARRAY      
-      break;
+async function playerChoise(){
+    const buttonId = event.target.id;
+    const clickedButton = document.getElementById(String(buttonId))
+    clickedButton.remove();
+    current = buttonId.slice(1)
+
+    for (let i = 0; i < playerCards.length; i++) {
+        let str = "p" + playerCards[i];
+        let searchCard = document.getElementById(String(str));
+        console.log("Searching non usable cards: ", searchCard);
+
+        if (searchCard.classList.contains("usable")){
+            searchCard.classList.remove("usable");
+            searchCard.disabled = true;
+        }
     }
-  }
-  
-  for (let i = 0; i < botCards.length; i++) {
-    var search = botCards[i].charAt(0);
-    if (search == currentNumber) {
-      current = botCards[i]
-      // REMOVE FROM THE BOTCARDS ARRAY      
-      break;
-    } else {
-      buyCard()
+
+    updateCurrent();
+    playerCards = playerCards.filter(item => item !== current);
+    await wait(4000)
+    botTurn();
+}
+
+async function botTurn() {
+
+    for (let i = 0; i < botCards.length; i++) {
+        var searchColor = botCards[i].charAt(current.length - 1);
+        var searchNumber = botCards[i].charAt(0);
+        if (searchColor == currentColor || searchNumber == currentNumber) {
+            current = botCards[i]
+            var deleteCard = document.getElementById(String(botCards[i]));
+            deleteCard.remove();
+            botCards = botCards.filter(item => item !== current);    
+            break;
+        }
     }
-  }
+
+    updateCurrent()
+    await wait(1000)
+    playerTurn()
 }
 
 function buyCard() {
@@ -240,13 +303,7 @@ function sumCheck(digit) {
 
 
 
-
-
-createDeck();
-giveFirstCards();
-firstDivs();
-playerTurn()
-
-// get the html divs
-// const top = document.getElementById('top');
-// const back = document.getElementById('back');
+    createDeck();
+    giveFirstCards();
+    firstDivs();
+    playerTurn();
