@@ -1,18 +1,29 @@
-// create variables
-const botDivs = document.getElementById('botcards');
-const playerDivs = document.getElementById('usercards');
-const buyDeck = document.getElementById('back');
-var deck = [];
-var rpt = 0;
-var left = 48;
-var current = "";
-var currentColor = current.charAt(current.length - 1);
-var currentNumber = current.charAt(0);
-var playerCards = [];
-var botCards = [];
-var round = 1;
-var sumUp = 0
-var bought = true
+//NOTES FOR LATER
+// Player is summing double
+// User can't play after manually buying cards
+// Finish block and change color cards
+// Add homescreen
+// Add finish screen
+// Add uno button
+// Change cards layout
+
+// CREATE VARIABLES
+    const botDivs = document.getElementById('botcards');
+    const playerDivs = document.getElementById('usercards');
+    const buyDeck = document.getElementById('back');
+    var deck = [];
+    var rpt = 0;
+    var left = 48;
+    var current = "";
+    var currentColor = current.charAt(current.length - 1);
+    var currentNumber = current.charAt(0);
+    var playerCards = [];
+    var botCards = [];
+    var round = 1;
+    var sumUp = 0;
+    var bought = true;
+    var manualBuying = 0;
+    var sum = 10;
 
 // SETTING UP TO START
 async function wait(ms) {
@@ -58,15 +69,32 @@ function giveFirstCards() {
         left--;
     }
     updateCurrent()
-    logCards()
 }
 
 function logCards() {
-    console.table(deck)
-    console.log("Player cards: ", playerCards);
-    console.log("Bot cards: ", botCards);
-    console.log("Current card: ", current)
-    console.log("current color: ", currentColor)
+    console.info(deck)
+    console.info("Player cards: ", playerCards);
+    console.info("Bot cards: ", botCards);
+    console.info("Cards left: ", left)
+    console.info("Current number: ", currentNumber)
+
+    switch (currentColor){
+        case "0":
+            console.info("Current color: red")
+            break;
+        case "1":
+            console.info("Current color: yellow");
+            break;
+        case "2":
+            console.info("Current color: green");
+            break;
+        case "3":
+            console.info("Current color: blue");
+            break;
+        case "4":
+            console.info("Current color: black");
+            break;
+    }
 }
 
 async function firstDivs() {
@@ -94,7 +122,7 @@ async function firstDivs() {
             newButton.classList.add("player");
 
             newButton.addEventListener("click", function() {
-                console.log("Button clicked!");
+                console.log("Player chose a card!")
                 const buttonId = event.target.id;
                 const clickedButton = document.getElementById(String(buttonId))
                 clickedButton.remove();
@@ -102,18 +130,19 @@ async function firstDivs() {
 
                 for (let i = 0; i < playerCards.length; i++) {
                     let str = "p" + playerCards[i];
-                    let searchCard = document.getElementById(str);
-                    console.log("Searching non usable cards: ", searchCard);
-                  
-                    if (searchCard && searchCard.classList.contains("usable")) {
-                      searchCard.classList.remove("usable");
-                      searchCard.disabled = true;
+                    let searchCard = document.getElementById(String(str));
+                    console.log("Disable buttons!");
+
+                    if (searchCard && searchCard.classList.contains("usable")){
+                        searchCard.classList.remove("usable");
+                        searchCard.disabled = true;
                     }
-                  }
-                  
+                }
+
                 updateCurrent();
+                sum = sumCheck();
+                logCards()
                 playerCards = playerCards.filter(item => item !== current);
-    
                 botTurn();
             });
               
@@ -152,7 +181,6 @@ async function firstDivs() {
         console.error("Error: Element(s) not found. Check your HTML IDs.");
     }
 }
-
 
 // GAME STARTED
 function updateCurrent() {
@@ -237,14 +265,13 @@ function updateCurrent() {
             topCard.classList.add("black");
             break;
     }
+    logCards()
 }
 
 async function playerTurn() {
+    console.log("Begining of player turn")
     if (round == 1) {
         await wait(5600);
-        var sum = 10
-    } else {
-        var sum = sumCheck(1)
     }
 
     round++
@@ -254,17 +281,19 @@ async function playerTurn() {
             let str = "p" + playerCards[i];
             var searchCard = document.getElementById(String(str));
             var searchNumber = playerCards[i].charAt(0);
-            console.log("Searching usable cards: ", searchCard);
+            console.log("Checking card ", i);
     
-            if (searchNumber == "+") {
+            if (searchNumber && searchNumber == "+") {
                 searchCard.classList.add("usable");
                 searchCard.disabled = false;
             } else {
                 if (i == playerCards.length - 1){
-                    console.log("taking ", sumUp, " cards")
-                    buyCard(1, sumUp)
-                    bought = true
-                    sumUp = 0
+                    console.log("Player taking ", sumUp, " cards");
+                    let confirm = buyCard(1, sumUp);
+                    await wait(sumUp*450)
+                    if (confirm == true){
+                        botTurn();
+                    }
                 }
             }
         }
@@ -272,11 +301,12 @@ async function playerTurn() {
         for (let i = 0; i < playerCards.length; i++) {
             let str = "p" + playerCards[i];
             var searchCard = document.getElementById(String(str));
-            console.log("Searching usable cards: ", searchCard);
+            let cardColor = playerCards[i].charAt(playerCards[i].length - 1);
+            let cardNumber = playerCards[i].charAt(0);
 
-            if (playerCards[i].charAt(playerCards[i].length - 1) == "4" || 
-            playerCards[i].charAt(1) == currentNumber ||
-            playerCards[i].charAt(playerCards[i].length - 1) == currentColor) {
+            if (cardColor == "4" || 
+            cardNumber == currentNumber ||
+            cardColor == currentColor) {
                 searchCard.classList.add("usable");
                 searchCard.disabled = false;
                 buyDeck.disabled = true;
@@ -289,50 +319,35 @@ async function playerTurn() {
             buyDeck.disabled = false;
         }
     }
-}
-
-async function playerChoise(){
-    const buttonId = event.target.id;
-    const clickedButton = document.getElementById(String(buttonId))
-    clickedButton.remove();
-    current = buttonId.slice(1)
-
-    for (let i = 0; i < playerCards.length; i++) {
-        let str = "p" + playerCards[i];
-        let searchCard = document.getElementById(String(str));
-        console.log("Searching non usable cards: ", searchCard);
-
-        if (searchCard.classList.contains("usable")){
-            searchCard.classList.remove("usable");
-            searchCard.disabled = true;
-        }
-    }
-
-    updateCurrent();
-    playerCards = playerCards.filter(item => item !== current);
-    await wait(4000)
-    botTurn();
+    console.log("End of player script. Select or buy a card")
 }
 
 async function botTurn() {
     round++
-    let sum = sumCheck(1)
+    console.log("Begining of bot turn")
+    
     if (sum == "sum" && bought == false){
         for (let i = 0; i < botCards.length; i++) {
             var searchNumber = botCards[i].charAt(0);
     
-            if (searchNumber == "+") {
+            if (searchNumber && searchNumber == "+") {
                 current = botCards[i];
                 var deleteCard = document.getElementById(String(botCards[i]));
-                deleteCard.remove();
-                botCards = botCards.filter(item => item !== current);    
+                if (deleteCard){
+                    deleteCard.remove();
+                }
+                botCards = botCards.filter(item => item !== current);
+                console.log("Bot has a sum card");
+                sum = sumCheck();
                 break;
             } else {
                 if (i == botCards.length - 1){
-                    console.log("taking ", sumUp, " cards");
-                    buyCard(2, sumUp);
-                    bought = true;
-                    sumUp = 0;
+                    console.log("bot taking ", sumUp, " cards");
+                    let confirm = buyCard(2, sumUp);
+                    await wait(sumUp*450)
+                    if (confirm == true){
+                        botTurn();
+                    }
                 }
             }
         }
@@ -341,109 +356,140 @@ async function botTurn() {
             var searchColor = botCards[i].charAt(current.length - 1);
             var searchNumber = botCards[i].charAt(0);
     
-            if (searchColor == currentColor || searchNumber == currentNumber) {
+            if (searchColor == currentColor ||
+            searchNumber == currentNumber ||
+            searchColor == "4") {
                 current = botCards[i];
                 var deleteCard = document.getElementById(String(botCards[i]));
                 deleteCard.remove();
-                botCards = botCards.filter(item => item !== current);    
+                botCards = botCards.filter(item => item !== current); 
+                console.log("Bot plays a card");
+                sum = sumCheck();
                 break;
             }
 
             if (i == botCards[i].length-1) {
                 buyCard(2,1)
+                console.log("Bot buys a card")  
                 break;
             }
         }
     }
 
+    console.log("End of bot turn")
     await wait(4000);
     updateCurrent();
-    playerTurn();
+    playerTurn()
 }
 
 async function buyCard(who, qt) {
     if (who == 1) {
-        for (let i = 0; i < qt; i++) {
-            playerCards.push(deck[left]);
-            console.log(deck)
-            deck.pop();
-            left--;
+        if (qt == 1) {
+            manualBuying++
+        }
 
-            var newButton = document.createElement("button");
-            newButton.disabled = true;
-            
-            if (playerCards[i].charAt(0) == "+"){
-                newButton.innerText = playerCards[i].charAt(0) + playerCards[i].charAt(1);
-            } else {
-              if (playerCards[i].charAt(0) == "b") {
-                // SWITCH TO IMAGE
-                newButton.innerText = "block";
-              } else {
-                if (playerCards[i].charAt(0) == "c") {
-                    newButton.innerText = "change colors";
-                } else {
-                    newButton.innerText = playerCards[i].charAt(0);
+        if (manualBuying < 3){
+            let actualLength = playerCards.length;
+            for (let i = actualLength; i < actualLength+qt; i++) {
+                if (deck[left] == undefined){
+                    createDeck()
                 }
-              }
-            }
-            newButton.id = "p" + String(playerCards[i]);
-            newButton.classList.add("card");
-            newButton.classList.add("player");
-    
-            newButton.addEventListener("click", function() {
-                console.log("Button clicked!");
-                const buttonId = event.target.id;
-                const clickedButton = document.getElementById(String(buttonId))
-                clickedButton.remove();
-                current = buttonId.slice(1)
-    
-                for (let i = 0; i < playerCards.length; i++) {
-                    let str = "p" + playerCards[i];
-                    let searchCard = document.getElementById(str);
-                    console.log("Searching non usable cards: ", searchCard);
-                  
-                    if (searchCard && searchCard.classList.contains("usable")) {
-                      searchCard.classList.remove("usable");
-                      searchCard.disabled = true;
+
+                console.info("Player is buying: ", deck[left])
+                await wait (100);
+                playerCards.push(deck[left]);
+                deck.pop();
+                left--;
+
+                var newButton = document.createElement("button");
+                newButton.disabled = true;
+                
+                if (playerCards[i].charAt(0) == "+"){
+                    newButton.innerText = playerCards[i].charAt(0) + playerCards[i].charAt(1);
+                } else {
+                  if (playerCards[i].charAt(0) == "b") {
+                    // SWITCH TO IMAGE
+                    newButton.innerText = "block";
+                  } else {
+                    if (playerCards[i].charAt(0) == "c") {
+                        newButton.innerText = "change colors";
+                    } else {
+                        newButton.innerText = playerCards[i].charAt(0);
                     }
                   }
-                  
-                updateCurrent();
-                playerCards = playerCards.filter(item => item !== current);
+                }
+                newButton.id = "p" + String(playerCards[i]);
+                newButton.classList.add("card");
+                newButton.classList.add("player");
     
-                botTurn();
-            });
+                newButton.addEventListener("click", function() {
+                    console.log("Player chose a card!")
+                    const buttonId = event.target.id;
+                    const clickedButton = document.getElementById(String(buttonId))
+                    clickedButton.remove();
+                    current = buttonId.slice(1)
+    
+                    for (let i = 0; i < playerCards.length; i++) {
+                        let str = "p" + playerCards[i];
+                        let searchCard = document.getElementById(String(str));
+                        console.log("Disable buttons!");
+    
+                        if (searchCard && searchCard.classList.contains("usable")){
+                            searchCard.classList.remove("usable");
+                            searchCard.disabled = true;
+                        }
+                    }
+    
+                    updateCurrent();
+                    sum = sumCheck();
+                    logCards()
+                    playerCards = playerCards.filter(item => item !== current);
+                    botTurn();
+                });
               
-            var colorCode = playerCards[i].charAt(playerCards[i].length - 1);
+                var colorCode = playerCards[i].charAt(playerCards[i].length - 1);
     
-            switch(colorCode){
-                case "0":
-                    newButton.classList.add("red");
-                    break;
-                case "1":
-                    newButton.classList.add("yellow");
-                    break;
-                case "2":
-                    newButton.classList.add("green");
-                    break;
-                case "3":
-                    newButton.classList.add("blue");
-                    break;
-                default:
-                    newButton.classList.add("black");
-                    break;
+                switch(colorCode){
+                    case "0":
+                        newButton.classList.add("red");
+                        break;
+                    case "1":
+                        newButton.classList.add("yellow");
+                        break;
+                    case "2":
+                        newButton.classList.add("green");
+                        break;
+                    case "3":
+                        newButton.classList.add("blue");
+                        break;
+                    default:
+                        newButton.classList.add("black");
+                        break;
+                }
+    
+                playerDivs.appendChild(newButton);
+                await wait(400);
             }
-    
-            playerDivs.appendChild(newButton);
-            await wait(400);
-        }
-        botTurn();
-        return;
+            bought = true;
+            console.log("Player has finished buying: ", confirm);
+            sumUp = 0;
+            return true;
+        } else {
+            botTurn()
+        } 
     } else {
-        for (let i = 0; i < qt; i++) {
+        
+        let actualLength = botCards.length;
+        for (let i = actualLength; i < actualLength+qt; i++) {
+            if (deck[left] == undefined){
+                createDeck()
+            }
+            console.info("Bot is buying: ", deck[left])
+            await wait (100);
             botCards.push(deck[left]);
             deck.pop();
             left--;
+
             var newDiv = document.createElement("div");
             newDiv.id = String(botCards[i]);
             newDiv.classList.add("card");
@@ -451,9 +497,11 @@ async function buyCard(who, qt) {
             botDivs.appendChild(newDiv);
             await wait(400);
         }
-        playerTurn();
-        return;
-    }
+        bought = true
+        sumUp = 0
+        console.log("Bot has finished buying: ", confirm);
+        return true;
+}
 }
 
 function sumCheck() {
@@ -469,8 +517,21 @@ function sumCheck() {
     }
 }
 
+// async function game (){
+//     if (round == 1){
+//         createDeck();
+//         giveFirstCards();
+//         firstDivs();
+//     }
+//     do {
+//         playerTurn();
+//         await wait(20000);
+//     } while (playerCards[0] == null || botCards[0] == null || round == 50)
+// }
 
-createDeck();
-giveFirstCards();
-firstDivs();
+if (round == 1){
+    createDeck();
+    giveFirstCards();
+    firstDivs();
+}
 playerTurn();
