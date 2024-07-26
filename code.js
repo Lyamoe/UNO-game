@@ -1,9 +1,16 @@
 //* Create variables
 //? DOM
+// screen DOM
+const startButton = document.getElementById("start");
+const homeScreen = document.getElementById("home");
+const mainScreen = document.getElementById("main");
+// bot DOM
 const botDivs = document.getElementById("botcards");
 const botClone = document.getElementById("botclone");
+// player DOM
 const playerDivs = document.getElementById("usercards");
 const playerClone = document.getElementById("userclone");
+// others
 const buyDeck = document.getElementById("back");
 
 //? Current cards
@@ -23,7 +30,7 @@ var bought = true;
 var manualBuying = 0;
 var sum = 10;
 
-//? Timer
+//* Timer
 async function wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -96,22 +103,25 @@ function logCards() {
 
 async function firstDivs() {
     buyCard(1, 7);
-    await wait (2800);
+    await wait(2800);
     buyCard(2, 7);
-    await wait (2800);
-    playerTurn()
+    await wait(2800);
+    playerTurn();
 }
 
 //* Match started
-//! None of those functions work properly
 function updateCurrent() {
     if (round == 1) {
         current = deck[left];
         currentColor = current.charAt(current.length - 1);
         specialCheck = current.charAt(0);
-        
+
         for (let i = 0; i < left; i++) {
-            if (currentColor != "4" && specialCheck != "+" && specialCheck != "b") {
+            if (
+                currentColor != "4" &&
+                specialCheck != "+" &&
+                specialCheck != "b"
+            ) {
                 deck = deck.filter((item) => item !== current);
                 left--;
                 break;
@@ -206,19 +216,23 @@ async function playerTurn() {
         }
     } else {
         for (let i = 0; i < playerCards.length; i++) {
-            let str = "p" + playerCards[i];
-            var searchCard = document.getElementById(String(str));
+            var searchCard = document.getElementById(
+                String("p" + playerCards[i])
+            );
             let cardColor = playerCards[i].charAt(playerCards[i].length - 1);
             let cardNumber = playerCards[i].charAt(0);
 
             if (
-                cardColor == "4" ||
-                cardNumber == currentNumber ||
-                cardColor == currentColor
+                searchCard &&
+                (cardColor == "4" ||
+                    cardNumber == currentNumber ||
+                    cardColor == currentColor)
             ) {
                 searchCard.classList.add("usable");
                 searchCard.disabled = false;
                 buyDeck.disabled = true;
+            } else {
+                console.error("card wasn't found");
             }
         }
         var nonusable = document.querySelectorAll(".usable");
@@ -253,7 +267,7 @@ async function botTurn() {
                     let confirm = buyCard(2, sumUp);
                     await wait(sumUp * 450);
                     if (confirm == true) {
-                        botTurn();
+                        playerTurn();
                     }
                 }
             }
@@ -291,6 +305,7 @@ async function botTurn() {
     playerTurn();
 }
 
+//! fix button onclick
 async function buyCard(who, qt) {
     if (who == 1) {
         if (qt == 1) {
@@ -304,66 +319,41 @@ async function buyCard(who, qt) {
                     createDeck();
                 }
 
+                //? add the card into player array
                 console.info("Player is buying: ", deck[left]);
                 await wait(100);
                 playerCards.push(deck[left]);
                 deck.pop();
                 left--;
 
-                var newButton = document.createElement("button");
+                const newButton = playerClone.cloneNode(true);
                 newButton.disabled = true;
+                const newSpan = newButton.querySelector(".circle span");
 
                 if (playerCards[i].charAt(0) == "+") {
-                    newButton.innerText =
+                    newSpan.innerText =
                         playerCards[i].charAt(0) + playerCards[i].charAt(1);
                 } else {
                     if (playerCards[i].charAt(0) == "b") {
-                        // SWITCH TO IMAGE
-                        newButton.innerText = "block";
+                        newSpan.innerText = "blc";
+                        //! switch to img/div
                     } else {
                         if (playerCards[i].charAt(0) == "c") {
-                            newButton.innerText = "change colors";
+                            newSpan.innerText = "col";
+                            //! switch to img/div
                         } else {
-                            newButton.innerText = playerCards[i].charAt(0);
+                            newSpan.innerText = playerCards[i].charAt(0);
                         }
                     }
                 }
                 newButton.id = "p" + String(playerCards[i]);
-                newButton.classList.add("card");
-                newButton.classList.add("player");
-
-                newButton.addEventListener("click", function () {
-                    console.log("Player chose a card!");
+                newButton.style.display = "inline-block";
+                playerClone.onclick = function(event) {
                     const buttonId = event.target.id;
-                    const clickedButton = document.getElementById(
-                        String(buttonId)
-                    );
-                    clickedButton.remove();
-                    current = buttonId.slice(1);
-
-                    for (let i = 0; i < playerCards.length; i++) {
-                        let str = "p" + playerCards[i];
-                        let searchCard = document.getElementById(String(str));
-                        console.log("Disable buttons!");
-
-                        if (
-                            searchCard &&
-                            searchCard.classList.contains("usable")
-                        ) {
-                            searchCard.classList.remove("usable");
-                            searchCard.disabled = true;
-                        }
-                    }
-
-                    updateCurrent();
-                    sum = sumCheck();
-                    logCards();
-                    playerCards = playerCards.filter(
-                        (item) => item !== current
-                    );
-                    botTurn();
-                });
-
+                    console.log(buttonId)
+                    selectCard(buttonId);
+                };
+                  
                 var colorCode = playerCards[i].charAt(
                     playerCards[i].length - 1
                 );
@@ -381,7 +371,7 @@ async function buyCard(who, qt) {
                     case "3":
                         newButton.classList.add("blue");
                         break;
-                    default:
+                    case "4":
                         newButton.classList.add("black");
                         break;
                 }
@@ -417,7 +407,7 @@ async function buyCard(who, qt) {
         }
         bought = true;
         sumUp = 0;
-        console.log("Bot has finished buying: ", confirm);
+        console.log("Bot has finished buying");
         return true;
     }
 }
@@ -435,10 +425,42 @@ function sumCheck() {
     }
 }
 
-//* Start game
-if (round == 1) {
-    createDeck();
-    giveFirstCards();
-    firstDivs();
+//! not working
+function selectCard(buttonId) {
+    console.log("Player chose a card!");
+    const clickedButton = document.getElementById(String(buttonId));
+    clickedButton.remove();
+    current = buttonId.slice(1);
+
+    for (let searchCard of playerDivs) {
+        if (
+            searchCard &&
+            searchCard.classList.contains("usable") &&
+            searchCard.id === current
+        ) {
+            searchCard.classList.remove("usable");
+            searchCard.disabled = true;
+            break;
+        }
+    }
+
+    updateCurrent();
+    sum = sumCheck();
+    logCards();
+    playerCards = playerCards.filter((item) => item !== current);
+    botTurn();
 }
-playerTurn();
+
+// //* Start game
+startButton.onclick = startGame;
+
+function startGame() {
+    homeScreen.style.display = "none";
+    mainScreen.style.display = "block";
+    if (round == 1) {
+        createDeck();
+        giveFirstCards();
+        firstDivs();
+    }
+    playerTurn();
+}

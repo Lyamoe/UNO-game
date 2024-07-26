@@ -9,18 +9,49 @@ body {
     background-color: #ffa0a0;
 }
 
+/*? HOME PAGE */
+#home {
+    height: 600px;
+    width: 100%;
+    text-align: center;
+    padding-top: 250px;
+}
+
+h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+#start {
+    background-color: crimson;
+    color: azure;
+    height: 30px;
+    width: 100px;
+    border-radius: 10px;
+}
+
 /*? CARD SETTINGS */
+main {
+    display: none;
+}
+
+#botclone, #userclone {
+    display: none;
+}
+
 .card {
     display: inline-block;
-    height: 120px;
-    width: 90px;
+    max-height: 120px;
+    max-width: 90px;
+    min-height: 120px;
+    min-width: 90px;
     border: 2px solid black;
     text-align: center;
     margin: 0 auto;
 }
 
-#botclone, #userclone {
-    display: none;
+.bot {
+    background-color: darkred;
 }
 
 h2 {
@@ -42,7 +73,7 @@ h2 {
 button > .circle {
     position: relative;
     transform: rotate(-5deg);
-    height: 65%;
+    height: 70px;
     width: 95%;
 }
 
@@ -73,4 +104,26 @@ span {
     position: relative;
     top: 350px;
     text-align: center;
+}
+
+/*? IN GAME CHANGES */
+.red {
+    background-color: crimson;
+}
+.blue {
+    background-color: teal;
+}
+.green {
+    background-color: green;
+}
+.yellow {
+    background-color: goldenrod;
+}
+.black {
+    background-color: slategray;
+}
+
+.usable:hover {
+    position: relative;
+    top: -20px;
 }
