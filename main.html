@@ -8,22 +8,39 @@
         <main>
             <!-- Bot hand -->
             <div id="botcards" class="hand">
-
+                <div class="card" id="botclone">
+                    <div class="circle">
+                        <span>UNO</span>
+                    </div>
+                </div>
             </div>
 
             <!-- User hand -->
             <div id="usercards" class="hand">
-                
+                <button disabled class="card" id="userclone">
+                    <div class="circle">
+                        <span>0</span>
+                    </div>
+                </button>
             </div>
 
             <!-- Main game -->
+             <h2>Bot turn</h2>
             <div id="main-game">
-                <div class="card" id="top"></div>
+                <div class="card" id="top">
+                    <div class="circle">
+                        <span>0</span>
+                    </div>
+                </div>
 
                 <!-- Deck -->
-                <button disabled onclick="buyCard(1, 1)" id="back" class="card">Buy cards</button>
+                <button disabled onclick="buyCard(1, 1)" id="back" class="card">
+                    <div class="circle">
+                        <span>UNO</span>
+                    </div>
+                </button>
             </div>
         </main>
+        <script type="text/javascript" src="code.js"></script>
     </body>
-    <script type="text/javascript" src="code.js"></script>
 </html>
