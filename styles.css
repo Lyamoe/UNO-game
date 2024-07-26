@@ -1,83 +1,76 @@
-* {
+*,
+::before,
+::after {
     margin: 0;
+    box-sizing: border-box;
 }
 
 body {
-    background-color: bisque;
+    background-color: #ffa0a0;
 }
 
-.hand {
-    margin: 0px auto;
-    height: 150px;
-    width: max-content;
-    min-width: 100px;
-    max-width: 90%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-evenly;
+/*? CARD SETTINGS */
+.card {
+    display: inline-block;
+    height: 120px;
+    width: 90px;
+    border: 2px solid black;
+    text-align: center;
+    margin: 0 auto;
 }
 
-#usercards {
-    position: relative;
-    top: 300px;
+#botclone, #userclone {
+    display: none;
+}
+
+h2 {
+    color: red;
+    text-align: center;
 }
 
 #main-game {
     display: flex;
-    flex-direction: row;
+    width: 40%;
+    margin: auto;
+}
+
+.circle {
+    background-color: white;
+    border-radius: 45px 25px;
+}
+
+button > .circle {
     position: relative;
-    width: 230px;
-    justify-content: space-between;
-    top: -80px;
-    left: 40%;
+    transform: rotate(-5deg);
+    height: 65%;
+    width: 95%;
+}
+
+div > .circle {
+    position: relative;
+    top: 22px;
+    left: 4px;
+    height: 60%;
+    width: 90%;
+    transform: rotate(-25deg);
+}
+
+span {
+    font-size: 30px;
+    position: relative;
+    top: 17px;
+    font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+}
+
+.hand {
+    max-height: 360px;
+    width: 90%;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+#usercards {
+    position: relative;
+    top: 350px;
     text-align: center;
-}
-
-#back {
-    height: 157px;
-    width: 107px;
-}
-
-/* IN GAME */
-
-.card {
-    margin: 0;
-    height: 150px;
-    width: 100px;
-    border: 4px solid black;
-    border-radius: 5px;
-}
-
-.bot, #back {
-    background-color: indigo;
-}
-
-#back:enabled:hover {
-    background-color: mediumpurple;
-}
-
-.usable:hover {
-    position: relative;
-    top: -10px;
-}
-
-.red {
-    background-color: red;
-}
-
-.yellow {
-    background-color: yellow;
-}
-
-.green {
-    background-color: green;
-}
-
-.blue {
-    background-color: turquoise;
-}
-
-.black {
-    background-color: darkslategrey;
 }

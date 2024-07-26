@@ -28,7 +28,7 @@ async function wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-//? Game setup
+//* Game setup
 function createDeck() {
     for (let i = 0; i < 4; i++) {
         for (let col = 0; col <= 11; col++) {
@@ -102,7 +102,8 @@ async function firstDivs() {
     playerTurn()
 }
 
-// GAME STARTED
+//* Match started
+//! None of those functions work properly
 function updateCurrent() {
     if (round == 1) {
         current = deck[left];
@@ -290,7 +291,6 @@ async function botTurn() {
     playerTurn();
 }
 
-//! Fix this one
 async function buyCard(who, qt) {
     if (who == 1) {
         if (qt == 1) {
@@ -435,6 +435,7 @@ function sumCheck() {
     }
 }
 
+//* Start game
 if (round == 1) {
     createDeck();
     giveFirstCards();
