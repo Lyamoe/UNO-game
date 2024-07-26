@@ -9,9 +9,9 @@ Can't find the reason why the buy card function doesn't work at all
 ## TODO
 * Make the block card work;
 * Make the change colors card work;
-* Fix the card design;
-* Clone instead of create new divs;
-* Create a homescreen.
+* Fix the card design (half done!);
+* Clone instead of create new divs (half done!);
+* Create a homescreen (initial idea made!).
 <br>
 <br>
 <br>
