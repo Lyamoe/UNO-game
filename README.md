@@ -23,7 +23,7 @@ Esta também é a primeira vez que uso o repositório github, então estou exper
 ## Dificuldades atuais
 Não é possível encontrar a razão pela qual a função comprar cartão não funciona em tudo
 
-## TODO
+## Tarefas
 * Faça a carta de bloqueio funcionar;
 * Faça a carta de mudança de cores funcionar;
 * Corrigir o design da carta;
