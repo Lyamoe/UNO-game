@@ -1,39 +1,30 @@
 //* ========== GET OTHER SCRIPT ==========
 import visualModule from "./visualScript.js";
 
-//* ========= EXPORTS ==========
-//? Exports to visualScript.js
-export default {
-    // functions
-    startGame,
-    chooseCardNumber,
-    // Variables
-    PLAYER_CARD_INDEX,
-    BOT_CARD_INDEX,
-    DECK_CARD_INDEX,
-    INITIAL_CARDS_ON_HANDS,
-};
-
-//? Exports to script.test.js
-// module.exports = {
-//     chooseCardNumber,
-// };
-
 //* ========== CREATE MAIN VARIABLES ==========
 
 //? Setups
+let CENTER_CARD;
 const DECK = [];
 const PLAYER_CARDS_ARRAY = [];
-const BOT_CARDS_ARRAY = [];
+const BOT1_CARDS_ARRAY = [];
+const COLORS_ARRAY = ["red", "yellow", "green", "blue", "black"];
+const SPECIALS_ARRAY = ["none", "sum", "block", "turn", "changeColors"];
 const QUANTITY_OF_CARDS_PER_NUMBER = 4;
 const INITIAL_CARDS_ON_HANDS = 7;
 const INITIAL_NUMBER_CARDS = 40;
 const INITIAL_COLORED_SPECIAL_CARDS = 8;
 const INITIAL_BLACK_SPECIAL_CARDS = 2;
 const NO_NUMBER_CARD_IDENTIFICATION = 10;
-const PLAYER_CARD_INDEX = 1;
-const BOT_CARD_INDEX = 2;
-const DECK_CARD_INDEX = 3;
+const OWNER_INDEX = {
+    "player": 0,
+    "deck": 1,
+    "center": 2,
+    "bot1": 3,
+    "bot2": 4,
+    "bot3": 5,
+}
+const WHO_PLAYS_NEXT = ["player", "bot1"];
 
 //? Classes
 class Card {
@@ -53,47 +44,34 @@ class Card {
 
 //* ========== SET UP DECK ==========
 //? Variables only used in the functions below
-var colorIndex = 0;
+var colorIndex = -1;
 
 //? Main functions
 function chooseCardNumber(index) {
-    const CARD_NUMBER_INDEX = Math.floor(index / QUANTITY_OF_CARDS_PER_NUMBER);
-    if (CARD_NUMBER_INDEX >= 0 && CARD_NUMBER_INDEX < 10) {
-        return CARD_NUMBER_INDEX;
+    const CARD_NUMBER = Math.floor(index / QUANTITY_OF_CARDS_PER_NUMBER);
+    if (CARD_NUMBER >= 0 && CARD_NUMBER < 10) {
+        return CARD_NUMBER;
     } else {
         throw new Error("Received an invalid index");
     }
 }
 
 function chooseCardColor() {
-    colorIndex == 4 ? (colorIndex = 1) : colorIndex++;
-
-    switch (colorIndex) {
-        case 1:
-            return "red";
-        case 2:
-            return "yellow";
-        case 3:
-            return "green";
-        case 4:
-            return "blue";
-        default:
-            throw new Error("Received a index lower that 1 or bigger than 4");
-    }
+    colorIndex == 3 ? (colorIndex = 0) : colorIndex++;
+    return COLORS_ARRAY[colorIndex];
 }
 
-function includeInDeck(index, needsNumber, needsColor, special = "none") {
+function includeInDeck(index, needsNumber, needsColor, special = SPECIALS_ARRAY[0]) {
     let number;
     let color;
-
-    for (let cardIndex = 4; cardIndex < index; cardIndex++) {
+    for (let cardIndex = 0; cardIndex < index; cardIndex++) {
         needsNumber === true
             ? (number = chooseCardNumber(cardIndex))
             : (number = needsNumber);
         needsColor === true
             ? (color = chooseCardColor())
             : (color = needsColor);
-        DECK.push(new Card(number, color, DECK_CARD_INDEX, special));
+        DECK.push(new Card(number, color, OWNER_INDEX["deck"], special));
     }
 }
 
@@ -104,7 +82,7 @@ function includeNumbersInDeck() {
 }
 
 function includeSums2InDeck() {
-    includeInDeck(INITIAL_COLORED_SPECIAL_CARDS, 2, true, "sum");
+    includeInDeck(INITIAL_COLORED_SPECIAL_CARDS, 2, true, SPECIALS_ARRAY[1]);
 }
 
 function includeBlocksInDeck() {
@@ -112,8 +90,7 @@ function includeBlocksInDeck() {
         INITIAL_COLORED_SPECIAL_CARDS,
         NO_NUMBER_CARD_IDENTIFICATION,
         true,
-        "block"
-    );
+        SPECIALS_ARRAY[2]    );
 }
 
 function includeTurnsInDeck() {
@@ -121,20 +98,20 @@ function includeTurnsInDeck() {
         INITIAL_COLORED_SPECIAL_CARDS,
         NO_NUMBER_CARD_IDENTIFICATION,
         true,
-        "turn"
+        SPECIALS_ARRAY[3]
     );
 }
 
 function includeSum4InDeck() {
-    includeInDeck(INITIAL_BLACK_SPECIAL_CARDS, 4, "black", "sum");
+    includeInDeck(INITIAL_BLACK_SPECIAL_CARDS, 4, COLORS_ARRAY[4], SPECIALS_ARRAY[1]);
 }
 
 function includeChangeColorInDeck() {
     includeInDeck(
         INITIAL_BLACK_SPECIAL_CARDS,
         NO_NUMBER_CARD_IDENTIFICATION,
-        "black",
-        "change colors"
+        COLORS_ARRAY[4],
+        SPECIALS_ARRAY[4]
     );
 }
 
@@ -162,27 +139,30 @@ function giveCards(whoOwns, array, qt) {
     }
 }
 
-function firstPlayerCards() {
-    giveCards(PLAYER_CARD_INDEX, PLAYER_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
+function createCenterCard() {
+    let SELECTED_CARD = DECK.pop();
+    while (SELECTED_CARD.special == "sum" || SELECTED_CARD.number == 10) {
+        SELECTED_CARD = DECK.pop();
+    }
+    SELECTED_CARD.owner = 3;
+    CENTER_CARD = SELECTED_CARD;
 }
 
-function firstBotCards() {
-    giveCards(BOT_CARD_INDEX, BOT_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
+function firstCardsInArrays() {
+    giveCards(OWNER_INDEX["player"], PLAYER_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
+    giveCards(OWNER_INDEX["bot1"], BOT1_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
 }
 
-function visuallyIncludeBotCards () {
-    visualModule.createBotDivs(BOT_CARDS_ARRAY)
-}
-
-function visuallyIncludePlayerCards () {
-    visualModule.createPlayerButtons(PLAYER_CARDS_ARRAY);
+function visuallyIncludeCards () {
+    visualModule.createPlayerFirstButtons(PLAYER_CARDS_ARRAY);
+    visualModule.createBot1FirstDivs(BOT1_CARDS_ARRAY)
+    visualModule.updateCentralCard(CENTER_CARD);
 }
 
 function createFirstCards() {
-    firstPlayerCards();
-    firstBotCards();
-    visuallyIncludeBotCards();
-    visuallyIncludePlayerCards();
+    firstCardsInArrays();
+    createCenterCard();
+    visuallyIncludeCards();
 }
 
 //*  ========== START GAME ==========
@@ -195,6 +175,25 @@ function startGame() {
 //* ========= LOGGING INFO ==========
 function logInfo() {
     console.log(PLAYER_CARDS_ARRAY);
-    console.log(BOT_CARDS_ARRAY);
+    console.log(BOT1_CARDS_ARRAY);
     console.log(DECK);
+    console.log(CENTER_CARD);
 }
+
+//* ========= EXPORTS ==========
+//? Exports to visualScript.js
+export default {
+    // functions
+    startGame,
+    chooseCardNumber,
+    // Variables
+    COLORS_ARRAY,
+    SPECIALS_ARRAY,
+    INITIAL_CARDS_ON_HANDS,
+    NO_NUMBER_CARD_IDENTIFICATION,
+};
+
+//? Exports to script.test.js
+// module.exports = {
+//     chooseCardNumber,
+// };
