@@ -4,27 +4,31 @@ import visualModule from "./visualScript.js";
 //* ========== CREATE MAIN VARIABLES ==========
 
 //? Setups
-let CENTER_CARD;
+const OWNER_INDEX = {
+    deck: 0,
+    center: 1,
+    user: 2,
+    bot1: 3,
+    bot2: 4,
+    bot3: 5,
+};
 const DECK = [];
-const PLAYER_CARDS_ARRAY = [];
-const BOT1_CARDS_ARRAY = [];
+const PLAYERS = [];
+const PLAYER_NAMES = ["user", "bot1", "bot2", "bot3"];
 const COLORS_ARRAY = ["red", "yellow", "green", "blue", "black"];
 const SPECIALS_ARRAY = ["none", "sum", "block", "turn", "changeColors"];
+const DIRECTIONS_ARRAY = ["clockwise", "counter-clockwise"];
+const NUMBER_OF_PLAYERS = 2; //TODO: Change to 4 after the game is working with 2
 const QUANTITY_OF_CARDS_PER_NUMBER = 4;
 const INITIAL_CARDS_ON_HANDS = 7;
 const INITIAL_NUMBER_CARDS = 40;
 const INITIAL_COLORED_SPECIAL_CARDS = 8;
 const INITIAL_BLACK_SPECIAL_CARDS = 2;
-const NO_NUMBER_CARD_IDENTIFICATION = 10;
-const OWNER_INDEX = {
-    "player": 0,
-    "deck": 1,
-    "center": 2,
-    "bot1": 3,
-    "bot2": 4,
-    "bot3": 5,
-}
-const WHO_PLAYS_NEXT = ["player", "bot1"];
+const NO_NUMBER_CARD_IDENTIFICATION = 10; //? every special card except sums will have a 10 as number
+let centerCard;
+let addIndex = 0;
+let direction = DIRECTIONS_ARRAY[0];
+let hasTheGameTurned = false;
 
 //? Classes
 class Card {
@@ -34,17 +38,50 @@ class Card {
         this.owner = owner;
         this.special = special;
     }
-    // get area() {
-    //     return this.calculaArea();
-    // }
-    // calculaArea() {
-    //     return this.altura * this.largura;
-    // }
+
+    get cardId() {
+        return this.setCardId;
+    }
+    setCardId() {
+        const cardNumber = String(this.number);
+        const cardColor = String(COLORS_ARRAY.indexOf(this.color));
+        const cardOwner = String(this.owner);
+        const cardSpecial = String(SPECIALS_ARRAY.indexOf(this.special));
+        return cardNumber + cardColor + cardOwner + cardSpecial;
+    }
+}
+
+class Player {
+    constructor(name, turn, cardsInHand = [], isSkipped = false) {
+        this.name = name;
+        this.turn = turn;
+        this.ownerIndex = OWNER_INDEX[this.name];
+        this.cardsInHand = cardsInHand;
+        this.isSkipped = isSkipped;
+    }
+    get nextTurn() {
+        return this.addOneToNextTurn;
+    }
+    addOneToNextTurn() {
+        if (this.turn == NUMBER_OF_PLAYERS - 1) {
+            this.turn = 0;
+        } else {
+            this.turn++;
+        }
+    }
+}
+
+//* ========== SET UP PLAYERS ==========
+function setPlayers() {
+    for (let i = 0; i < NUMBER_OF_PLAYERS; i++) {
+        const PLAYER = new Player(PLAYER_NAMES[i], i);
+        PLAYERS.push(PLAYER);
+    }
 }
 
 //* ========== SET UP DECK ==========
 //? Variables only used in the functions below
-var colorIndex = -1;
+let colorIndex = -1;
 
 //? Main functions
 function chooseCardNumber(index) {
@@ -61,7 +98,12 @@ function chooseCardColor() {
     return COLORS_ARRAY[colorIndex];
 }
 
-function includeInDeck(index, needsNumber, needsColor, special = SPECIALS_ARRAY[0]) {
+function includeInDeck(
+    index,
+    needsNumber,
+    needsColor,
+    special = SPECIALS_ARRAY[0]
+) {
     let number;
     let color;
     for (let cardIndex = 0; cardIndex < index; cardIndex++) {
@@ -90,7 +132,8 @@ function includeBlocksInDeck() {
         INITIAL_COLORED_SPECIAL_CARDS,
         NO_NUMBER_CARD_IDENTIFICATION,
         true,
-        SPECIALS_ARRAY[2]    );
+        SPECIALS_ARRAY[2]
+    );
 }
 
 function includeTurnsInDeck() {
@@ -103,7 +146,12 @@ function includeTurnsInDeck() {
 }
 
 function includeSum4InDeck() {
-    includeInDeck(INITIAL_BLACK_SPECIAL_CARDS, 4, COLORS_ARRAY[4], SPECIALS_ARRAY[1]);
+    includeInDeck(
+        INITIAL_BLACK_SPECIAL_CARDS,
+        4,
+        COLORS_ARRAY[4],
+        SPECIALS_ARRAY[1]
+    );
 }
 
 function includeChangeColorInDeck() {
@@ -126,16 +174,20 @@ function createDeck() {
     DECK.sort(() => Math.random() - 0.5);
 }
 
-//* ========== GIVE FIRST CARDS ==========
-function giveCards(whoOwns, array, qt) {
-    for (
-        let currentCard = 0;
-        currentCard < qt;
-        currentCard++
-    ) {
+//* ========== GIVE CARDS TO PLAYERS ==========
+function deckNeedsToBeShuffled(qtOfCardsToBuy) {
+    if (qtOfCardsToBuy > DECK.length) {
+        createDeck();
+    }
+}
+
+function giveCards(player, qt) {
+    deckNeedsToBeShuffled(qt);
+    const PLAYER_ARRAY = player.cardsInHand;
+    for (let currentCard = 0; currentCard < qt; currentCard++) {
         const ADDED_CARD = DECK.pop();
-        ADDED_CARD.owner = whoOwns;
-        array.push(ADDED_CARD);
+        ADDED_CARD.owner = player.ownerIndex;
+        PLAYER_ARRAY.push(ADDED_CARD);
     }
 }
 
@@ -144,19 +196,19 @@ function createCenterCard() {
     while (SELECTED_CARD.special == "sum" || SELECTED_CARD.number == 10) {
         SELECTED_CARD = DECK.pop();
     }
-    SELECTED_CARD.owner = 3;
-    CENTER_CARD = SELECTED_CARD;
+    SELECTED_CARD.owner = OWNER_INDEX["center"];
+    centerCard = SELECTED_CARD;
 }
 
 function firstCardsInArrays() {
-    giveCards(OWNER_INDEX["player"], PLAYER_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
-    giveCards(OWNER_INDEX["bot1"], BOT1_CARDS_ARRAY, INITIAL_CARDS_ON_HANDS);
+    giveCards(OWNER_INDEX[PLAYER_NAMES[0]], INITIAL_CARDS_ON_HANDS);
+    giveCards(OWNER_INDEX[PLAYER_NAMES[1]], INITIAL_CARDS_ON_HANDS);
 }
 
-function visuallyIncludeCards () {
-    visualModule.createPlayerFirstButtons(PLAYER_CARDS_ARRAY);
-    visualModule.createBot1FirstDivs(BOT1_CARDS_ARRAY)
-    visualModule.updateCentralCard(CENTER_CARD);
+function visuallyIncludeCards() {
+    visualModule.createPlayerFirstButtons();
+    visualModule.createBot1FirstDivs();
+    visualModule.updateCentralCard();
 }
 
 function createFirstCards() {
@@ -165,8 +217,209 @@ function createFirstCards() {
     visuallyIncludeCards();
 }
 
+//* ========== ACCESSING INFO ===========
+function findNextPlayerObject() {
+    for (const player of PLAYERS) {
+        const TURN = player.turn;
+        if (TURN == 1) {
+            return player;
+        }
+    }
+    throw new Error("Player was not found");
+}
+
+function locateAttributesWithId(cardId) {
+    const ID_LENGTH = cardId.length;
+    const NUMBER_IDENTIFICATOR = cardId.slice(0, -3);
+    const COLOR_IDENTIFICATOR = cardId.charAt(ID_LENGTH - 3);
+    const OWNER_IDENTIFICATOR = cardId.charAt(ID_LENGTH - 2);
+    const SPECIAL_IDENTIFICATOR = cardId.charAt(ID_LENGTH - 1);
+    const COLOR_NAME = COLORS_ARRAY[parseInt(COLOR_IDENTIFICATOR)];
+    const SPECIAL_NAME = SPECIALS_ARRAY[parseInt(SPECIAL_IDENTIFICATOR)];
+    return [
+        NUMBER_IDENTIFICATOR,
+        COLOR_NAME,
+        OWNER_IDENTIFICATOR,
+        SPECIAL_NAME,
+    ];
+}
+
+function findCorrespondentCardObject(cardId, array) {
+    const ATTRIBUTTES_ARRAY = locateAttributesWithId(cardId);
+    for (const object of array) {
+        if (
+            object.number == ATTRIBUTTES_ARRAY[0] &&
+            object.color == ATTRIBUTTES_ARRAY[1] &&
+            object.owner == ATTRIBUTTES_ARRAY[2] &&
+            object.special == ATTRIBUTTES_ARRAY[3]
+        ) {
+            return object;
+        }
+    }
+    throw new ReferenceError("Object was not found");
+}
+
+//* ========== CHOSEN CARD OPTIONS ==========
+function removeCardFromArray(object, array) {
+    for (const card of array) {
+        if (card === object) {
+            array.splice(array.indexOf(card), 1);
+            break;
+        }
+    }
+}
+
+function updateCentralCardVariable(card) {
+    centerCard = card;
+    visualModule.updateCentralCard();
+}
+
+function checkIfPlayerHasSumCard(array) {
+    for (const card of array) {
+        if (card.special == SPECIALS_ARRAY[1]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function sumCardSelected(nextPlayer, sumNumber) {
+    addIndex += sumNumber;
+    const HAS_SUM_CARD = checkIfPlayerHasSumCard(nextPlayer.cardsInHand);
+    if (HAS_SUM_CARD) {
+        nextPlayer.isSkipped = false;
+    } else {
+        giveCards(nextPlayer, addIndex);
+        addIndex = 0;
+        nextPlayer.isSkipped = true;
+    }
+}
+
+function blockCardSelected(nextPlayer) {
+    nextPlayer.isSkipped = true;
+}
+
+function changeDirection() {
+    if (direction == DIRECTIONS_ARRAY[0]) {
+        direction = DIRECTIONS_ARRAY[1]
+    } else {
+        direction = DIRECTIONS_ARRAY[0]
+    }
+}
+
+function turnCardSelected() {
+    for (let i = 0; i < NUMBER_OF_PLAYERS; i++) {
+        const TURN = PLAYERS[i].turn;
+        switch (TURN) {
+            case 0:
+                PLAYERS[i].turn = PLAYERS.length - 1;
+                break;
+            case 1:
+                PLAYERS[i].turn = PLAYERS.length - 2;
+                break;
+            case 2:
+                PLAYERS[i].turn = PLAYERS.length - 3;
+                break;
+            case 3:
+                PLAYERS[i].turn = PLAYERS.length - 4;
+                break;
+            default:
+                throw new Error("The turn is higher than it should be");
+        }
+    }
+    changeDirection();
+    hasTheGameTurned = true;
+}
+
+//TODO: finish these functions
+function changeColorsCardSelected() {}
+
+function redirectToSpecialFunction(cardObject) {
+    const NUMBER = cardObject.number;
+    const SPECIAL = cardObject.special;
+    const NEXT_PLAYER = findNextPlayerObject();
+
+    switch (SPECIAL) {
+        case SPECIALS_ARRAY[0]:
+            break;
+        case SPECIALS_ARRAY[1]:
+            sumCardSelected(NEXT_PLAYER, NUMBER);
+            break;
+        case SPECIALS_ARRAY[2]:
+            blockCardSelected(NEXT_PLAYER);
+            break;
+        case SPECIALS_ARRAY[3]:
+            turnCardSelected();
+            break;
+        case SPECIALS_ARRAY[4]:
+            changeColorsCardSelected();
+            break;
+        default:
+            throw new ReferenceError("Special was not identified");
+    }
+}
+
+function handleChosenCard(cardId, array) {
+    const SELECTED_OBJECT = findCorrespondentCardObject(cardId, array);
+    updateCentralCardVariable(SELECTED_OBJECT);
+    redirectToSpecialFunction(SELECTED_OBJECT);
+    removeCardFromArray(SELECTED_OBJECT, array);
+}
+
+//*  ========== IN GAME ==========
+
+function playerTurn() {
+    //* Configure special cards before this one since you'll have to check if the center
+    //* card is a special card before the player can choose what they'll be using
+    // if (sum == "sum" && bought == false) {
+    //     for (let i = 0; i < playerCards.length; i++) {
+    //         let str = "p" + playerCards[i];
+    //         var searchCard = document.getElementById(String(str));
+    //         var searchNumber = playerCards[i].charAt(0);
+    //         console.log("Checking card ", i);
+    //         if (searchNumber && searchNumber == "+") {
+    //             searchCard.classList.add("usable");
+    //             searchCard.disabled = false;
+    //         } else {
+    //             if (i == playerCards.length - 1) {
+    //                 console.log("Player taking ", sumUp, " cards");
+    //                 let confirm = buyCard(1, sumUp);
+    //                 if (confirm == true) {
+    //                     botTurn();
+    //                 }
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     for (let i = 0; i < playerCards.length; i++) {
+    //         var searchCard = document.getElementById(
+    //             String("p" + playerCards[i])
+    //         );
+    //         let cardColor = playerCards[i].charAt(playerCards[i].length - 1);
+    //         let cardNumber = playerCards[i].charAt(0);
+    //         if (
+    //             searchCard &&
+    //             (cardColor == "4" ||
+    //                 cardNumber == currentNumber ||
+    //                 cardColor == currentColor)
+    //         ) {
+    //             searchCard.classList.add("usable");
+    //             searchCard.disabled = false;
+    //             buyDeck.disabled = true;
+    //         } else {
+    //             console.error("card wasn't found");
+    //         }
+    //     }
+    //     var nonusable = document.querySelectorAll(".usable");
+    //     if (nonusable.length == 0) {
+    //         buyDeck.disabled = false;
+    //     }
+    // }
+}
+
 //*  ========== START GAME ==========
 function startGame() {
+    setPlayers();
     createDeck();
     createFirstCards();
     logInfo();
@@ -177,7 +430,7 @@ function logInfo() {
     console.log(PLAYER_CARDS_ARRAY);
     console.log(BOT1_CARDS_ARRAY);
     console.log(DECK);
-    console.log(CENTER_CARD);
+    console.log(centerCard);
 }
 
 //* ========= EXPORTS ==========
@@ -185,8 +438,10 @@ function logInfo() {
 export default {
     // functions
     startGame,
+    handleChosenCard,
     chooseCardNumber,
     // Variables
+    centerCard,
     COLORS_ARRAY,
     SPECIALS_ARRAY,
     INITIAL_CARDS_ON_HANDS,

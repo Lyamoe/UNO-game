@@ -4,14 +4,14 @@ I'm working on this project to learn how to make JavaScript interact with CSS an
 This is also my first time using github repository so I'll be still figuring out!
 
 ## Current difficulties
-Can't find the reason why the buy card function doesn't work at all
+Change the configuration to object oriented
 
 ## TODO
-* Make the block card work;
-* Make the change colors card work;
-* Fix the card design (half done!);
-* Clone instead of create new divs (half done!);
-* Create a homescreen (initial idea made!).
+* Finish the game code
+* Make a better home screen
+* Create a button to replay (middle game)
+* Include a win/lose screen by the end
+* try to include two more bots
 <br>
 <br>
 <br>
@@ -21,11 +21,11 @@ Estou trabalhando neste projeto para aprender como fazer JavaScript interagir co
 Esta também é a primeira vez que uso o repositório github, então estou experimentando!
 
 ## Dificuldades atuais
-Não é possível encontrar a razão pela qual a função comprar cartão não funciona em tudo
+Trocar as funções agora que players são objetos
 
 ## Tarefas
-* Faça a carta de bloqueio funcionar;
-* Faça a carta de mudança de cores funcionar;
-* Corrigir o design da carta;
-* Clonar ao invés de criar as cartas;
-* Crie uma tela inicial.
+* Finalizar o código do jogo
+* Criar uma tela inicial melhor
+* Criar um botão para recomeçar (desistir no meio do jogo)
+* Incluir uma tela de vitória/derrota no final
+* Tentar incluir mais dois bots

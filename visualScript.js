@@ -14,6 +14,9 @@ const MAIN_SCREEN = document.getElementById("main");
 const TOP_CARD = document.getElementById("top");
 
 //? Imported variables
+const CENTER_CARD = gameModule.centerCard;
+const PLAYER_CARDS_ARRAY = gameModule.PLAYER_CARDS_ARRAY;
+const BOT1_CARDS_ARRAY = gameModule.BOT1_CARDS_ARRAY;
 const COLORS_ARRAY = gameModule.COLORS_ARRAY;
 const SPECIALS_ARRAY = gameModule.SPECIALS_ARRAY;
 const INITIAL_CARDS_ON_HANDS = gameModule.INITIAL_CARDS_ON_HANDS;
@@ -32,28 +35,19 @@ function closeHomescreen() {
 
 function setCardSelectionFunction(btn) {
     btn.onclick = function (event) {
-        const buttonId = event.target.id;
-        console.log("Player chose a card!");
-        const CLICKED_CARD = document.getElementById(String(buttonId));
+        const CLICKED_CARD_ID = event.target.id;
+        const CLICKED_CARD = document.getElementById(String(CLICKED_CARD_ID));
+        gameModule.handleChosenCard(CLICKED_CARD_ID, PLAYER_CARDS_ARRAY);
         CLICKED_CARD.remove();
     };
 }
 
-function giveSpecialCardANumber(special) {
-    return SPECIALS_ARRAY.indexOf(special);
-}
-
-function giveColorANumber(color) {
-    return COLORS_ARRAY.indexOf(color);
-}
-
-function setCardId(btn, card) {
-    const cardNumber = String(card.number);
-    const cardColor = String(giveColorANumber(card.color));
-    const cardOwner = String(card.owner);
-    const cardSpecial = String(giveSpecialCardANumber(card.special));
-    btn.id = cardNumber + cardColor + cardOwner + cardSpecial;
-}
+// function checkIfIconIsShown (i, span, special) {
+//     if (!i.textContent.trim()) {
+//         span.innerText = special;
+//         i.remove();
+//     }
+// }
 
 function createIconForSpecials(span, special) {
     const ICON = document.createElement("i");
@@ -72,6 +66,7 @@ function createIconForSpecials(span, special) {
     }
     span.innerText = "";
     span.appendChild(ICON);
+    // checkIfIconIsShown(ICON, span, special);
 }
 
 function configureSpan(btn, card) {
@@ -93,113 +88,59 @@ function giveCardAColor(parent, card) {
     parent.classList.add(CARD_COLOR);
 }
 
-function resetCenterCardColor(card) {
-    const CARD_COLOR = card.color;
-    if (TOP_CARD.classList.contains(CARD_COLOR)) {
-        TOP_CARD.classList.remove(CARD_COLOR);
+function resetCenterCardColor() {
+    for (const color of COLORS_ARRAY) {
+        if (TOP_CARD.classList.contains(color)) {
+            TOP_CARD.classList.remove(color);
+            break;
+        }
     }
 }
 
 //? Execute all of the above
-function playerBuysCards(qt, array) {
+function playerBuysCards(qt) {
     for (let currentCard = 0; currentCard < qt; currentCard++) {
         const NEW_BTN = PLAYER_CARD_TO_CLONE.cloneNode(true);
-        const SELECTED_CARD = array[currentCard];
+        const SELECTED_CARD = PLAYER_CARDS_ARRAY[currentCard];
         setCardSelectionFunction(NEW_BTN);
-        setCardId(NEW_BTN, SELECTED_CARD);
         configureSpan(NEW_BTN, SELECTED_CARD);
         giveCardAColor(NEW_BTN, SELECTED_CARD);
+        NEW_BTN.id = SELECTED_CARD.cardId();
         NEW_BTN.disabled = true;
         NEW_BTN.style.display = "inline-block";
         PLAYER_HAND_DIV.appendChild(NEW_BTN);
     }
 }
 
-function bot1BuysCards(qt, array) {
+function botBuysCards(qt, array, cloneCard) {
     for (let currentCard = 0; currentCard < qt; currentCard++) {
-        const NEW_DIV = BOT1_CARD_TO_CLONE.cloneNode(true);
+        const NEW_DIV = cloneCard.cloneNode(true);
         const SELECTED_CARD = array[currentCard];
-        setCardId(NEW_DIV, SELECTED_CARD);
+        NEW_DIV.id = SELECTED_CARD.cardId();
+        NEW_DIV.style.display = "inline-block";
         BOT1_HAND_DIV.appendChild(NEW_DIV);
     }
 }
 
-function updateCentralCard(card) {
-    setCardId(TOP_CARD, card);
-    configureSpan(TOP_CARD, card);
-    resetCenterCardColor(card);
-    giveCardAColor(TOP_CARD, card);
+function updateCentralCard() {
+    TOP_CARD.Id = CENTER_CARD.cardId();
+    configureSpan(TOP_CARD, CENTER_CARD);
+    resetCenterCardColor();
+    giveCardAColor(TOP_CARD, CENTER_CARD);
+}
+
+//? Bot buying functions
+function bot1BuysCards(qt) {
+    botBuysCards(qt, BOT1_CARDS_ARRAY, BOT1_CARD_TO_CLONE);
 }
 
 //? Create for the first time
-function createPlayerFirstButtons(array) {
-    playerBuysCards(INITIAL_CARDS_ON_HANDS, array);
+function createPlayerFirstButtons() {
+    playerBuysCards(INITIAL_CARDS_ON_HANDS);
 }
 
-function createBot1FirstDivs(array) {
-    bot1BuysCards(INITIAL_CARDS_ON_HANDS, array);
-}
-
-//*  ========== CARDS ACTIONS ==========
-
-function sumCardSelected() {}
-
-function blockCardSelected() {}
-
-function turnCardSelected() {}
-
-function changeColorsCardSelected() {}
-
-//*  ========== IN GAME ==========
-
-function playerTurn() {
-    //* Configure special cards before this one since you'll have to check if the center
-    //* card is a special card before the player can choose what they'll be using
-
-    // if (sum == "sum" && bought == false) {
-    //     for (let i = 0; i < playerCards.length; i++) {
-    //         let str = "p" + playerCards[i];
-    //         var searchCard = document.getElementById(String(str));
-    //         var searchNumber = playerCards[i].charAt(0);
-    //         console.log("Checking card ", i);
-    //         if (searchNumber && searchNumber == "+") {
-    //             searchCard.classList.add("usable");
-    //             searchCard.disabled = false;
-    //         } else {
-    //             if (i == playerCards.length - 1) {
-    //                 console.log("Player taking ", sumUp, " cards");
-    //                 let confirm = buyCard(1, sumUp);
-    //                 if (confirm == true) {
-    //                     botTurn();
-    //                 }
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     for (let i = 0; i < playerCards.length; i++) {
-    //         var searchCard = document.getElementById(
-    //             String("p" + playerCards[i])
-    //         );
-    //         let cardColor = playerCards[i].charAt(playerCards[i].length - 1);
-    //         let cardNumber = playerCards[i].charAt(0);
-    //         if (
-    //             searchCard &&
-    //             (cardColor == "4" ||
-    //                 cardNumber == currentNumber ||
-    //                 cardColor == currentColor)
-    //         ) {
-    //             searchCard.classList.add("usable");
-    //             searchCard.disabled = false;
-    //             buyDeck.disabled = true;
-    //         } else {
-    //             console.error("card wasn't found");
-    //         }
-    //     }
-    //     var nonusable = document.querySelectorAll(".usable");
-    //     if (nonusable.length == 0) {
-    //         buyDeck.disabled = false;
-    //     }
-    // }
+function createBot1FirstDivs() {
+    bot1BuysCards(INITIAL_CARDS_ON_HANDS);
 }
 
 //*  ========== START GAME ==========
@@ -211,7 +152,7 @@ function callFirstFunctions() {
 START_BUTTON.onclick = callFirstFunctions;
 
 //* ========= EXPORTS ==========
-//? Exports to visualScript.js
+//? Exports to script.js
 export default {
     createBot1FirstDivs,
     createPlayerFirstButtons,

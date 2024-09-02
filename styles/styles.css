@@ -35,10 +35,6 @@ main {
   display: none;
 }
 
-#botclone, #userclone {
-  display: none;
-}
-
 .card {
   display: inline-block;
   max-height: 120px;
@@ -48,6 +44,10 @@ main {
   border: 2px solid black;
   text-align: center;
   margin: 0 auto;
+}
+
+.clone {
+  display: none;
 }
 
 .bot {
