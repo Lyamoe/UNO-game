@@ -1,8 +1,9 @@
+//TODO: Finish code starting on "chosen card options", everything above is finished
+
 //* ========== GET OTHER SCRIPT ==========
 import visualModule from "./visualScript.js";
 
 //* ========== CREATE MAIN VARIABLES ==========
-
 //? Setups
 const OWNER_INDEX = {
     deck: 0,
@@ -52,12 +53,12 @@ class Card {
 }
 
 class Player {
-    constructor(name, turn, cardsInHand = [], isSkipped = false) {
+    constructor(name, turn) {
         this.name = name;
         this.turn = turn;
-        this.ownerIndex = OWNER_INDEX[this.name];
-        this.cardsInHand = cardsInHand;
-        this.isSkipped = isSkipped;
+        this.ownerIndex = OWNER_INDEX[name];
+        this.cardsInHand = [];
+        this.isSkipped = false;
     }
     get nextTurn() {
         return this.addOneToNextTurn;
@@ -198,17 +199,19 @@ function createCenterCard() {
     }
     SELECTED_CARD.owner = OWNER_INDEX["center"];
     centerCard = SELECTED_CARD;
+    visualModule.updateCentralCard(centerCard);
+
 }
 
 function firstCardsInArrays() {
-    giveCards(OWNER_INDEX[PLAYER_NAMES[0]], INITIAL_CARDS_ON_HANDS);
-    giveCards(OWNER_INDEX[PLAYER_NAMES[1]], INITIAL_CARDS_ON_HANDS);
+    for (let i = 0; i < NUMBER_OF_PLAYERS; i++) {
+        giveCards(PLAYERS[i], INITIAL_CARDS_ON_HANDS);
+    }
 }
 
 function visuallyIncludeCards() {
     visualModule.createPlayerFirstButtons();
     visualModule.createBot1FirstDivs();
-    visualModule.updateCentralCard();
 }
 
 function createFirstCards() {
@@ -220,8 +223,7 @@ function createFirstCards() {
 //* ========== ACCESSING INFO ===========
 function findNextPlayerObject() {
     for (const player of PLAYERS) {
-        const TURN = player.turn;
-        if (TURN == 1) {
+        if (player.turn == 1) {
             return player;
         }
     }
@@ -271,7 +273,7 @@ function removeCardFromArray(object, array) {
 
 function updateCentralCardVariable(card) {
     centerCard = card;
-    visualModule.updateCentralCard();
+    visualModule.updateCentralCard(card);
 }
 
 function checkIfPlayerHasSumCard(array) {
@@ -427,10 +429,14 @@ function startGame() {
 
 //* ========= LOGGING INFO ==========
 function logInfo() {
-    console.log(PLAYER_CARDS_ARRAY);
-    console.log(BOT1_CARDS_ARRAY);
-    console.log(DECK);
-    console.log(centerCard);
+    console.clear();
+    console.group("This round's cards:");
+        console.table(PLAYERS[0].cardsInHand);
+        console.table(PLAYERS[1].cardsInHand);
+        console.table(DECK);
+        console.log(centerCard);
+    console.groupEnd();
+
 }
 
 //* ========= EXPORTS ==========
@@ -442,6 +448,8 @@ export default {
     chooseCardNumber,
     // Variables
     centerCard,
+    PLAYERS,
+    PLAYER_NAMES,
     COLORS_ARRAY,
     SPECIALS_ARRAY,
     INITIAL_CARDS_ON_HANDS,

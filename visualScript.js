@@ -14,9 +14,8 @@ const MAIN_SCREEN = document.getElementById("main");
 const TOP_CARD = document.getElementById("top");
 
 //? Imported variables
-const CENTER_CARD = gameModule.centerCard;
-const PLAYER_CARDS_ARRAY = gameModule.PLAYER_CARDS_ARRAY;
-const BOT1_CARDS_ARRAY = gameModule.BOT1_CARDS_ARRAY;
+const PLAYERS = gameModule.PLAYERS;
+const PLAYER_NAMES = gameModule.PLAYER_NAMES;
 const COLORS_ARRAY = gameModule.COLORS_ARRAY;
 const SPECIALS_ARRAY = gameModule.SPECIALS_ARRAY;
 const INITIAL_CARDS_ON_HANDS = gameModule.INITIAL_CARDS_ON_HANDS;
@@ -40,6 +39,14 @@ function setCardSelectionFunction(btn) {
         gameModule.handleChosenCard(CLICKED_CARD_ID, PLAYER_CARDS_ARRAY);
         CLICKED_CARD.remove();
     };
+}
+
+function findObjectByPlayerName(name){
+for (const player of PLAYERS) {
+    if (player.name == name) {
+        return player;
+    }
+}
 }
 
 // function checkIfIconIsShown (i, span, special) {
@@ -101,7 +108,9 @@ function resetCenterCardColor() {
 function playerBuysCards(qt) {
     for (let currentCard = 0; currentCard < qt; currentCard++) {
         const NEW_BTN = PLAYER_CARD_TO_CLONE.cloneNode(true);
-        const SELECTED_CARD = PLAYER_CARDS_ARRAY[currentCard];
+        const USER = findObjectByPlayerName(PLAYER_NAMES[0]);
+        const ARRAY = USER.cardsInHand;
+        const SELECTED_CARD = ARRAY[ARRAY.length - (1 + currentCard)];
         setCardSelectionFunction(NEW_BTN);
         configureSpan(NEW_BTN, SELECTED_CARD);
         giveCardAColor(NEW_BTN, SELECTED_CARD);
@@ -115,23 +124,25 @@ function playerBuysCards(qt) {
 function botBuysCards(qt, array, cloneCard) {
     for (let currentCard = 0; currentCard < qt; currentCard++) {
         const NEW_DIV = cloneCard.cloneNode(true);
-        const SELECTED_CARD = array[currentCard];
+        const SELECTED_CARD = array[array.length - (1 + currentCard)];
         NEW_DIV.id = SELECTED_CARD.cardId();
         NEW_DIV.style.display = "inline-block";
         BOT1_HAND_DIV.appendChild(NEW_DIV);
     }
 }
 
-function updateCentralCard() {
-    TOP_CARD.Id = CENTER_CARD.cardId();
-    configureSpan(TOP_CARD, CENTER_CARD);
+function updateCentralCard(card) {
+    TOP_CARD.Id = card.cardId();
+    configureSpan(TOP_CARD, card);
     resetCenterCardColor();
-    giveCardAColor(TOP_CARD, CENTER_CARD);
+    giveCardAColor(TOP_CARD, card);
 }
 
 //? Bot buying functions
 function bot1BuysCards(qt) {
-    botBuysCards(qt, BOT1_CARDS_ARRAY, BOT1_CARD_TO_CLONE);
+    const BOT1 = findObjectByPlayerName(PLAYER_NAMES[1]);
+    const ARRAY = BOT1.cardsInHand;
+    botBuysCards(qt, ARRAY, BOT1_CARD_TO_CLONE);
 }
 
 //? Create for the first time
