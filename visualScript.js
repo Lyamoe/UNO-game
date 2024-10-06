@@ -7,7 +7,6 @@ const BOT1_HAND_DIV = document.getElementById("bot1cards");
 const BOT1_CARD_TO_CLONE = document.getElementById("bot1clone");
 const PLAYER_HAND_DIV = document.getElementById("usercards");
 const PLAYER_CARD_TO_CLONE = document.getElementById("userclone");
-const BUY_CARDS_BTN = document.getElementById("back");
 const START_BUTTON = document.getElementById("start");
 const HOME_SCREEN = document.getElementById("home");
 const MAIN_SCREEN = document.getElementById("main");
@@ -23,10 +22,20 @@ const NO_NUMBER_CARD_IDENTIFICATION = gameModule.NO_NUMBER_CARD_IDENTIFICATION;
 
 //? Other variables
 
-//*  ========== TOGGLE HOMESCREEN ==========
+//*  ========== TOGGLE SCREENS ==========
 function closeHomescreen() {
     HOME_SCREEN.style.display = "none";
     MAIN_SCREEN.style.display = "block";
+}
+
+function openMenuScreen() {}
+
+function closeMenuScreen() {}
+
+function openColorSelectionScreen() {
+}
+
+function closeColorSelectionScreen() {
 }
 
 //*  ========== CREATE CARD DIVS/BUTTONS ==========
@@ -36,8 +45,9 @@ function setCardSelectionFunction(btn) {
     btn.onclick = function (event) {
         const CLICKED_CARD_ID = event.target.id;
         const CLICKED_CARD = document.getElementById(String(CLICKED_CARD_ID));
-        gameModule.handleChosenCard(CLICKED_CARD_ID, PLAYER_CARDS_ARRAY);
+        gameModule.handleChosenCard(CLICKED_CARD_ID, PLAYERS[0].cardsInHand);
         CLICKED_CARD.remove();
+        gameModule.callPlayerTurnFunction();
     };
 }
 
@@ -105,6 +115,7 @@ function resetCenterCardColor() {
 }
 
 //? Execute all of the above
+//! REMOVE CLONE CLASS
 function playerBuysCards(qt) {
     for (let currentCard = 0; currentCard < qt; currentCard++) {
         const NEW_BTN = PLAYER_CARD_TO_CLONE.cloneNode(true);
@@ -165,6 +176,10 @@ START_BUTTON.onclick = callFirstFunctions;
 //* ========= EXPORTS ==========
 //? Exports to script.js
 export default {
+    openMenuScreen,
+    closeMenuScreen,
+    openColorSelectionScreen,
+    closeColorSelectionScreen,
     createBot1FirstDivs,
     createPlayerFirstButtons,
     updateCentralCard,

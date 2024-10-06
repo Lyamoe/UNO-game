@@ -5,6 +5,7 @@ import visualModule from "./visualScript.js";
 
 //* ========== CREATE MAIN VARIABLES ==========
 //? Setups
+const BUY_CARDS_BTN = document.getElementById("back");
 const OWNER_INDEX = {
     deck: 0,
     center: 1,
@@ -29,7 +30,7 @@ const NO_NUMBER_CARD_IDENTIFICATION = 10; //? every special card except sums wil
 let centerCard;
 let addIndex = 0;
 let direction = DIRECTIONS_ARRAY[0];
-let hasTheGameTurned = false;
+let isASumTurn = false;
 
 //? Classes
 class Card {
@@ -200,7 +201,6 @@ function createCenterCard() {
     SELECTED_CARD.owner = OWNER_INDEX["center"];
     centerCard = SELECTED_CARD;
     visualModule.updateCentralCard(centerCard);
-
 }
 
 function firstCardsInArrays() {
@@ -246,6 +246,7 @@ function locateAttributesWithId(cardId) {
     ];
 }
 
+//! select card is returning this
 function findCorrespondentCardObject(cardId, array) {
     const ATTRIBUTTES_ARRAY = locateAttributesWithId(cardId);
     for (const object of array) {
@@ -287,6 +288,7 @@ function checkIfPlayerHasSumCard(array) {
 
 function sumCardSelected(nextPlayer, sumNumber) {
     addIndex += sumNumber;
+    isASumTurn = true;
     const HAS_SUM_CARD = checkIfPlayerHasSumCard(nextPlayer.cardsInHand);
     if (HAS_SUM_CARD) {
         nextPlayer.isSkipped = false;
@@ -294,6 +296,7 @@ function sumCardSelected(nextPlayer, sumNumber) {
         giveCards(nextPlayer, addIndex);
         addIndex = 0;
         nextPlayer.isSkipped = true;
+        isASumTurn = false;
     }
 }
 
@@ -303,9 +306,9 @@ function blockCardSelected(nextPlayer) {
 
 function changeDirection() {
     if (direction == DIRECTIONS_ARRAY[0]) {
-        direction = DIRECTIONS_ARRAY[1]
+        direction = DIRECTIONS_ARRAY[1];
     } else {
-        direction = DIRECTIONS_ARRAY[0]
+        direction = DIRECTIONS_ARRAY[0];
     }
 }
 
@@ -330,11 +333,18 @@ function turnCardSelected() {
         }
     }
     changeDirection();
-    hasTheGameTurned = true;
 }
 
-//TODO: finish these functions
-function changeColorsCardSelected() {}
+//TODO: set the functions in visualModule
+function playerSelectedColor(color) {
+    centerCard.color = color;
+    visualModule.updateCentralCard(centerCard);
+    visualModule.closeColorSelectionScreen();
+}
+
+function changeColorsCardSelected() {
+    visualModule.openColorSelectionScreen();
+}
 
 function redirectToSpecialFunction(cardObject) {
     const NUMBER = cardObject.number;
@@ -369,74 +379,134 @@ function handleChosenCard(cardId, array) {
 }
 
 //*  ========== IN GAME ==========
+function nextTurn() {
+    logInfo();
+    let nextPlayerName;
+    for (const player of PLAYERS) {
+        const TURN = player.turn;
+        switch (TURN) {
+            case 0:
+                player.turn = PLAYERS.length - 1;
+                nextPlayerName = player.name;
+            case 1:
+                player.turn = 0;
+                break;
+            case 2:
+                player.turn = 1;
+                break;
+            case 3:
+                player.turn = 2;
+                break;
+            default:
+                throw new RangeError("The turn is higher than it should be");
+        }
+    }
+    return nextPlayerName;
+}
 
+function callPlayerTurnFunction() {
+    const WHO_PLAYS_NEXT = nextTurn();
+    switch (WHO_PLAYS_NEXT) {
+        case PLAYER_NAMES[0]:
+            playerTurn();
+            break;
+        case PLAYER_NAMES[1]:
+            bot1Turn();
+            break;
+        case PLAYER_NAMES[2]:
+            bot2Turn();
+            break;
+        case PLAYER_NAMES[3]:
+            bot3Turn();
+            break;
+        default:
+            break;
+    }
+}
+
+function basicBotTurn(array) {
+    callPlayerTurnFunction();
+}
+
+function bot1Turn() {
+    basicBotTurn(PLAYERS[1].cardsInHand);
+}
+function bot2Turn() {
+    basicBotTurn(PLAYERS[2].cardsInHand);
+}
+function bot3Turn() {
+    basicBotTurn(PLAYERS[3].cardsInHand);
+}
+
+function manuallyBuying(canPlayACard) {
+    if (!canPlayACard) {
+        BUY_CARDS_BTN.disabled = false;
+        //TODO: set up the buy cards button to max two or your turn is skipped
+    }
+}
+
+//! NOT WORKING: it is turning random cards available
 function playerTurn() {
-    //* Configure special cards before this one since you'll have to check if the center
-    //* card is a special card before the player can choose what they'll be using
-    // if (sum == "sum" && bought == false) {
-    //     for (let i = 0; i < playerCards.length; i++) {
-    //         let str = "p" + playerCards[i];
-    //         var searchCard = document.getElementById(String(str));
-    //         var searchNumber = playerCards[i].charAt(0);
-    //         console.log("Checking card ", i);
-    //         if (searchNumber && searchNumber == "+") {
-    //             searchCard.classList.add("usable");
-    //             searchCard.disabled = false;
-    //         } else {
-    //             if (i == playerCards.length - 1) {
-    //                 console.log("Player taking ", sumUp, " cards");
-    //                 let confirm = buyCard(1, sumUp);
-    //                 if (confirm == true) {
-    //                     botTurn();
-    //                 }
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     for (let i = 0; i < playerCards.length; i++) {
-    //         var searchCard = document.getElementById(
-    //             String("p" + playerCards[i])
-    //         );
-    //         let cardColor = playerCards[i].charAt(playerCards[i].length - 1);
-    //         let cardNumber = playerCards[i].charAt(0);
-    //         if (
-    //             searchCard &&
-    //             (cardColor == "4" ||
-    //                 cardNumber == currentNumber ||
-    //                 cardColor == currentColor)
-    //         ) {
-    //             searchCard.classList.add("usable");
-    //             searchCard.disabled = false;
-    //             buyDeck.disabled = true;
-    //         } else {
-    //             console.error("card wasn't found");
-    //         }
-    //     }
-    //     var nonusable = document.querySelectorAll(".usable");
-    //     if (nonusable.length == 0) {
-    //         buyDeck.disabled = false;
-    //     }
-    // }
+    let userCanPlayACard = false;
+    for (const card of PLAYERS[0].cardsInHand) {
+        if (isASumTurn) {
+            if (card.special === SPECIALS_ARRAY[1]) {
+                const CARD_HTML = document.getElementById(String(card.cardId));
+                CARD_HTML.classList.add("usable");
+                CARD_HTML.disabled = false;
+                userCanPlayACard = true;
+            }
+        } else {
+            if (
+                card.number == centerCard.number ||
+                card.color == centerCard.color ||
+                card.color == COLORS_ARRAY[4] ||
+                card.special == centerCard.special
+            ) {
+                const CARD_ID = card.cardId();
+                const CARD_HTML = document.getElementById(CARD_ID);
+                CARD_HTML.classList.add("usable");
+                CARD_HTML.disabled = false;
+                userCanPlayACard = true;
+            }
+        }
+    }
+    manuallyBuying(userCanPlayACard);
 }
 
 //*  ========== START GAME ==========
+//? Variables only used in this section
+let round = 1;
+
+function playerStillHasCards(array) {
+    if (array.length == 0) {
+        return false;
+    }
+    return true;
+}
+
+function roundsConfig() {
+    playerTurn();
+}
+
 function startGame() {
     setPlayers();
     createDeck();
     createFirstCards();
     logInfo();
+    roundsConfig();
 }
 
 //* ========= LOGGING INFO ==========
 function logInfo() {
     console.clear();
     console.group("This round's cards:");
-        console.table(PLAYERS[0].cardsInHand);
-        console.table(PLAYERS[1].cardsInHand);
-        console.table(DECK);
-        console.log(centerCard);
+    for (let i = 0; i < PLAYERS.length; i++) {
+        console.table(PLAYERS[i].cardsInHand);
+    }
+    console.table(DECK);
+    console.log(centerCard);
     console.groupEnd();
-
 }
 
 //* ========= EXPORTS ==========
@@ -445,6 +515,7 @@ export default {
     // functions
     startGame,
     handleChosenCard,
+    playerSelectedColor,
     chooseCardNumber,
     // Variables
     centerCard,
